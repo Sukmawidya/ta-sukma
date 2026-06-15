@@ -1,19 +1,19 @@
 require('dotenv').config();
 const express = require('express');
 const mqtt = require('mqtt');
-const { InfluxDB, Point } = require('@influxdata/influxdb-client');
+const { InfluxDB } = require('@influxdata/influxdb-client'); // Point dihapus karena tidak dipakai
 const path = require('path');
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Inisialisasi InfluxDB Client
+// Inisialisasi InfluxDB Client (HANYA UNTUK QUERY / MEMBACA DATA)
 const influxDB = new InfluxDB({ url: process.env.INFLUX_URL, token: process.env.INFLUX_TOKEN });
-const writeApi = influxDB.getWriteApi(process.env.INFLUX_ORG, process.env.INFLUX_BUCKET, 'ns');
 const queryApi = influxDB.getQueryApi(process.env.INFLUX_ORG);
+// writeApi sudah dihapus
 
-// Variabel penampung data realtime terakhir
+// Variabel penampung data realtime terakhir untuk Dashboard
 let latestSensorData = {
     temperature: 0,
     humidity: 0,
@@ -35,13 +35,12 @@ mqttClient.on('message', (topic, message) => {
         try {
             const data = JSON.parse(message.toString());
             
-            // Fungsi pembantu untuk menerjemahkan teks "ON"/"OFF" menjadi boolean true/false
             const parseStatus = (val) => {
                 if (val === 'ON' || val === 'on' || val === 1 || val === true) return true;
                 return false;
             };
             
-            // Menangkap data JSON persis seperti: {"temperature":25.7,"humidity":60.5,"fan":"OFF","mist":"OFF"}
+            // Tetap perbarui variabel ini agar API Realtime (Dashboard) tidak mati
             latestSensorData = {
                 temperature: Number(data.temperature ?? data.suhu ?? 0),
                 humidity: Number(data.humidity ?? data.kelembapan ?? 0),
@@ -50,15 +49,8 @@ mqttClient.on('message', (topic, message) => {
                 time: new Date().toLocaleTimeString('id-ID')
             };
 
-            // Simpan data UTUH ke InfluxDB
-            const point = new Point('sensoraht20')
-                .floatField('suhu', latestSensorData.temperature)
-                .floatField('kelembapan', latestSensorData.humidity)
-                .booleanField('fanStatus', latestSensorData.fanStatus)     
-                .booleanField('mistStatus', latestSensorData.mistStatus);  
-            
-            writeApi.writePoint(point);
-            writeApi.flush();
+            // KODE PENYIMPANAN INFLUXDB TELAH DIHAPUS DARI SINI
+            // Penyimpanan sekarang sepenuhnya ditangani oleh Node-RED
 
         } catch (error) {
             console.error('Gagal memproses payload MQTT:', error);
@@ -66,7 +58,7 @@ mqttClient.on('message', (topic, message) => {
     }
 });
 
-// Endpoint 1: Mengambil Data Realtime Terakhir
+// Endpoint 1: Mengambil Data Realtime Terakhir (Untuk Dashboard)
 app.get('/api/realtime', (req, res) => {
     res.json(latestSensorData);
 });
@@ -74,15 +66,12 @@ app.get('/api/realtime', (req, res) => {
 // Endpoint 2: Mengirim Perintah Pengendalian
 app.post('/api/control', (req, res) => {
     const { device, state } = req.body;
-    
-    // Gabungkan nama device dan state menjadi string: "FAN_ON" atau "MIST_OFF"
     const payload = `${device.toUpperCase()}_${state.toUpperCase()}`; 
-    
     mqttClient.publish(process.env.MQTT_TOPIC_CONTROL, payload);
     res.json({ success: true, message: `Command ${payload} terkirim ke MQTT.` });
 });
 
-// Endpoint 3: Query Data Historis Menggunakan Flux Query (DATA MENTAH DENGAN FILTER WAKTU)
+// Endpoint 3: Query Data Historis Menggunakan Flux Query (DATA MENTAH)
 app.get('/api/history', async (req, res) => {
     const { range, start, end } = req.query;
     let rangeQuery = '';
@@ -102,7 +91,7 @@ app.get('/api/history', async (req, res) => {
             |> filter(fn: (r) => r["_field"] == "kelembapan" or r["_field"] == "suhu" or r["_field"] == "fanStatus" or r["_field"] == "mistStatus")
             |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
             |> sort(columns: ["_time"], desc: true)
-            |> limit(n: 5000) // Batas aman maksimal 5000 baris raw data
+            |> limit(n: 5000)
     `;
 
     const logs = [];
@@ -136,12 +125,9 @@ app.get('/api/chart-data', async (req, res) => {
     const { range, start, end } = req.query;
     let rangeQuery = '';
 
-    // Logika jika memilih waktu Custom
     if (range === 'custom' && start && end) {
         rangeQuery = `|> range(start: ${new Date(start).toISOString()}, stop: ${new Date(end).toISOString()})`;
-    } 
-    // Logika jika memilih preset
-    else {
+    } else {
         const validRanges = ['1h', '12h', '24h', '7d', '30d'];
         const selectedRange = validRanges.includes(range) ? range : '24h';
         rangeQuery = `|> range(start: -${selectedRange})`;
