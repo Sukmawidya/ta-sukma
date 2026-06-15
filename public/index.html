@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenHouse Melon Dashboard</title>
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="gh">
+  <aside class="sb">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🌱</div>
+      <div class="sb-logo-name">GreenHouse</div>
+      <div class="sb-logo-sub">Melon</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">Utama</div>
+      <div class="sb-item nav-item active" data-page="dashboard" id="nav-dashboard">
+        <i class="ti ti-home"></i>Dashboard
+      </div>
+      <div class="sb-item nav-item" data-page="monitoring" id="nav-monitoring">
+        <i class="ti ti-chart-line"></i>Monitoring
+      </div>
+      <div class="sb-item nav-item" data-page="control" id="nav-control">
+        <i class="ti ti-adjustments-horizontal"></i>Control Panel
+      </div>
+      <div class="sb-sec">Manajemen</div>
+      <div class="sb-item nav-item" data-page="alerts" id="nav-alerts">
+        <i class="ti ti-bell"></i>Alert<span class="sb-badge" id="alertBadge">3</span>
+      </div>
+      <div class="sb-item nav-item" data-page="history" id="nav-history">
+        <i class="ti ti-history"></i>History
+      </div>
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-status"><div class="dot on"></div><span class="sb-status-txt">InfluxDB Connected</span></div>
+      <div class="sb-status"><div class="dot on"></div><span class="sb-status-txt">MQTT Connected</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    
+    <header class="hdr">
+      <div class="hdr-titles">
+        <div class="hdr-title" id="pageTitle">Dashboard</div>
+        <div class="hdr-sub" id="pageSubtitle">Monitoring realtime greenhouse melon</div>
+      </div>
+      <div class="hdr-time" id="clk">--:--:--</div>
+      <div class="hdr-bell" id="bellAlertBtn"><i class="ti ti-bell"></i><div class="hdr-alert-dot"></div></div>
+    </header>
+
+    <div class="content">
+      
+      <div id="page-dashboard" class="page-content active-page">
+        <div class="dash-full-container">
+          <div class="sec-hdr">
+            <span class="sec-ttl">Sensor Realtime</span>
+            <div id="upd" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#4a7a5a; background:#fff; padding:4px 10px; border-radius:6px; border:0.5px solid #e2eedb">
+              Update: Menunggu...
+            </div>
+          </div>
+          <div class="sensor-grid-full">
+            <div class="sensor-card temp">
+              <span class="s-ico">🌡️</span>
+              <div class="s-lbl">Suhu Udara</div>
+              <div style="font-size: 10.5px; margin-top: 2px; color: #ea580c; font-weight: 600;">Batas Kritis Kipas: ≥ 35.0°C</div>
+              <div class="s-val"><span id="tempVal">--.-</span><span class="s-unit">°C</span></div>
+              <div class="s-status good" id="tempStatus">✅ Terkoneksi (Normal)</div>
+              <span class="s-bg">🌡️</span>
+            </div>
+            <div class="sensor-card hum">
+              <span class="s-ico">💧</span>
+              <div class="s-lbl">Kelembapan Udara</div>
+              <div style="font-size: 10.5px; margin-top: 2px; color: #0284c7; font-weight: 600;">Batas Drop Mist: ≤ 50.0%</div>
+              <div class="s-val"><span id="humVal">--.-</span><span class="s-unit">%</span></div>
+              <div class="s-status good" id="humStatus">✅ Terkoneksi (Normal)</div>
+              <span class="s-bg">💧</span>
+            </div>
+          </div>
+          <div class="card" style="padding: 18px; display: flex; align-items: center; justify-content: space-between; background: #fff; border: 0.5px solid #e2eedb; margin-bottom:0;">
+             <div>
+                <div style="font-size: 15px; font-weight:700; color:#0f2d1a; display:flex; align-items:center; gap:6px;">🤖 Otomatisasi Sistem Aktif</div>
+                <div style="font-size: 11.5px; color:#7aaa8a; margin-top:3px">Engine mikrokontroler mengevaluasi kondisi aktuator secara berkala berdasarkan pengiriman data.</div>
+             </div>
+             <button class="mode-btn">Sistem Normal</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-monitoring" class="page-content">
+        <div class="card">
+          <div class="card-hdr" style="flex-direction: column; align-items: flex-start; gap: 12px; padding-bottom: 10px;">
+            <div>
+              <div class="card-title">Grafik Tren Sensor Historis</div>
+              <div class="card-sub">Analisis data mentah (raw data) berdasarkan rentang waktu pilihan dari InfluxDB</div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%;">
+              <select id="timeRangeSelect" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #cde8d4; font-family: inherit; font-size: 12px; outline: none; cursor: pointer;">
+                <option value="1h">1 Jam Terakhir</option>
+                <option value="12h">12 Jam Terakhir</option>
+                <option value="24h" selected>24 Jam Terakhir</option>
+                <option value="7d">1 Minggu Terakhir</option>
+                <option value="30d">1 Bulan Terakhir</option>
+                <option value="custom">Waktu Custom...</option>
+              </select>
+
+              <div id="customDateContainer" style="display: none; align-items: center; gap: 8px;">
+                <input type="datetime-local" id="customStart" style="padding: 5px; font-size: 11px; border: 1px solid #cde8d4; border-radius: 6px; outline:none;">
+                <span style="font-size: 12px; color: #7aaa8a;">hingga</span>
+                <input type="datetime-local" id="customEnd" style="padding: 5px; font-size: 11px; border: 1px solid #cde8d4; border-radius: 6px; outline:none;">
+                <button id="applyCustomBtn" style="padding: 6px 12px; font-size: 11px; font-weight: 600; background: #0f2d1a; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Terapkan</button>
+              </div>
+              
+              <span id="chartLoadingIndicator" style="font-size: 11px; font-weight: 600; color: #f59e0b; display: none;">⏳ Memuat data grafik...</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-layout-grid">
+              <div class="chart-container-box"><canvas id="tempLineChart"></canvas></div>
+              <div class="chart-container-box"><canvas id="humLineChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-control" class="page-content">
+        <div class="sec-hdr"><span class="sec-ttl">Status Aktuator Perangkat Keras</span></div>
+        <div class="device-grid">
+          <div class="device-card" id="fanCard" style="cursor: default;">
+            <div class="dev-hdr">
+              <span class="dev-ico">🌀</span>
+            </div>
+            <div class="dev-lbl">Exhaust Fan</div>
+            <div class="dev-desc">Dikendalikan otomatis (Nyala ≥ 35.0°C | Mati ≤ 33.0°C)</div>
+            <div class="dev-state off" id="fanState">● MATI</div>
+          </div>
+          <div class="device-card" id="mistCard" style="cursor: default;">
+            <div class="dev-hdr">
+              <span class="dev-ico">🌫️</span>
+            </div>
+            <div class="dev-lbl">Mist Maker</div>
+            <div class="dev-desc">Dikendalikan otomatis (Nyala ≤ 50.0% | Mati ≥ 75.0%)</div>
+            <div class="dev-state off" id="mistState">● MATI</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-alerts" class="page-content">
+        <div class="card">
+          <div class="card-hdr">
+            <div>
+              <div class="card-title">Log Alert Sistem</div>
+              <div class="card-sub">Memerlukan penanganan manual dari operator</div>
+            </div>
+          </div>
+          <div class="card-body" id="alertContainer"></div> 
+        </div>
+      </div>
+
+      <div id="page-history" class="page-content">
+        <div class="card">
+          <div class="card-hdr" style="flex-direction: column; align-items: flex-start; gap: 12px; padding-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start;">
+              <div>
+                <div class="card-title">Riwayat Log Data Sensor Mentah</div>
+                <div class="card-sub">Data ditarik secara dinamis dari InfluxDB</div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button class="dl-btn" id="refreshHistoryBtn" style="background: #3b82f6;"><i class="ti ti-refresh"></i> Refresh</button>
+                <button class="dl-btn" id="downloadCsvBtn"><i class="ti ti-download"></i> CSV</button>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%;">
+              <select id="historyTimeSelect" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #cde8d4; font-family: inherit; font-size: 12px; outline: none; cursor: pointer;">
+                <option value="1h">1 Jam Terakhir</option>
+                <option value="12h">12 Jam Terakhir</option>
+                <option value="24h" selected>24 Jam Terakhir</option>
+                <option value="7d">7 Hari Terakhir</option>
+                <option value="30d">30 Hari Terakhir</option>
+                <option value="custom">Waktu Custom...</option>
+              </select>
+
+              <div id="historyCustomDate" style="display: none; align-items: center; gap: 8px;">
+                <input type="datetime-local" id="histStart" style="padding: 5px; font-size: 11px; border: 1px solid #cde8d4; border-radius: 6px; outline:none;">
+                <span style="font-size: 12px; color: #7aaa8a;">hingga</span>
+                <input type="datetime-local" id="histEnd" style="padding: 5px; font-size: 11px; border: 1px solid #cde8d4; border-radius: 6px; outline:none;">
+                <button id="applyHistCustomBtn" style="padding: 6px 12px; font-size: 11px; font-weight: 600; background: #0f2d1a; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Terapkan</button>
+              </div>
+              <span id="histLoadingIndicator" style="font-size: 11px; font-weight: 600; color: #f59e0b; display: none;">⏳ Memuat log...</span>
+            </div>
+          </div>
+          
+          <div class="card-body" style="padding:0; overflow-x:auto;">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Waktu Log</th>
+                  <th>Suhu Udara</th>
+                  <th>Kelembapan</th>
+                  <th>Status Exhaust</th>
+                  <th>Status Mist</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: #7aaa8a; padding: 20px;">Memuat riwayat database...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div style="padding: 12px 16px; border-top: 1px solid #e2eedb; display: flex; justify-content: space-between; align-items: center; background: #fafcfa;">
+            <span style="font-size: 12px; color: #7aaa8a;" id="pageInfo">Menampilkan 0 - 0 dari 0 data</span>
+            <div style="display: flex; gap: 8px;">
+              <button id="prevPageBtn" style="padding: 4px 10px; border: 1px solid #cde8d4; background: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; color: #4a7a5a;" disabled>Sebelumnya</button>
+              <button id="nextPageBtn" style="padding: 4px 10px; border: 1px solid #cde8d4; background: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; color: #4a7a5a;" disabled>Selanjutnya</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
