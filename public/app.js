@@ -32,10 +32,10 @@ function navigate(pageId) {
     // Ubah judul header sesuai halaman
     const titles = {
         'dashboard': ['Dashboard', 'Monitoring realtime greenhouse melon'],
-        'monitoring': ['Monitoring Grafik', 'Analisis tren sensor kumulatif'],
+        'monitoring': ['Monitoring Grafik', 'Analisis tren sensor'],
         'control': ['Control Panel', 'Pemantauan status perangkat aktuator'],
-        'alerts': ['Pusat Peringatan', 'Sistem pelacakan bahaya kritis greenhouse'],
-        'history': ['Data History', 'Data log tabel historis teraktual langsung dari InfluxDB']
+        'alerts': ['Pusat Peringatan', 'Sistem pelacakan bahaya greenhouse'],
+        'history': ['Data History', 'Tabel riwayat data historis real-time']
     };
     
     if(titles[pageId]) {
