@@ -98,7 +98,7 @@
           <div class="card-hdr" style="flex-direction: column; align-items: flex-start; gap: 12px; padding-bottom: 10px;">
             <div>
               <div class="card-title">Grafik Tren Sensor Historis</div>
-              <div class="card-sub">Analisis data mentah (raw data) berdasarkan rentang waktu pilihan dari InfluxDB</div>
+              <div class="card-sub">Visualisasi data time-series</div>
             </div>
             
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%;">
@@ -138,7 +138,7 @@
               <span class="dev-ico">🌀</span>
             </div>
             <div class="dev-lbl">Exhaust Fan</div>
-            <div class="dev-desc">Dikendalikan otomatis (Nyala ≥ 35.0°C | Mati ≤ 33.0°C)</div>
+            <div class="dev-desc"> otomatis (Nyala ≥ 35.0°C | Mati ≤ 33.0°C)</div>
             <div class="dev-state off" id="fanState">● MATI</div>
           </div>
           <div class="device-card" id="mistCard" style="cursor: default;">
@@ -146,7 +146,7 @@
               <span class="dev-ico">🌫️</span>
             </div>
             <div class="dev-lbl">Mist Maker</div>
-            <div class="dev-desc">Dikendalikan otomatis (Nyala ≤ 50.0% | Mati ≥ 75.0%)</div>
+            <div class="dev-desc"> otomatis (Nyala ≤ 50.0% | Mati ≥ 75.0%)</div>
             <div class="dev-state off" id="mistState">● MATI</div>
           </div>
         </div>
@@ -168,8 +168,8 @@
           <div class="card-hdr" style="flex-direction: column; align-items: flex-start; gap: 12px; padding-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start;">
               <div>
-                <div class="card-title">Riwayat Log Data Sensor Mentah</div>
-                <div class="card-sub">Data ditarik secara dinamis dari InfluxDB</div>
+                <div class="card-title">Riwayat Log Data</div>
+                <div class="card-sub">Data ditampilkan secara real-time berdasarkan rentang waktu yang dipilih</div>
               </div>
               <div style="display: flex; gap: 8px;">
                 <button class="dl-btn" id="refreshHistoryBtn" style="background: #3b82f6;"><i class="ti ti-refresh"></i> Refresh</button>
